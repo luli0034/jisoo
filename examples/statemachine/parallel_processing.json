@@ -1,0 +1,46 @@
+{
+    "States": {
+        "ParallelIndependentProcessing": {
+            "Type": "Parallel",
+            "Branches": [
+                {
+                    "States": {
+                        "Clean_Data": {
+                            "Type": "Pass",
+                            "Next": "Save_Data"
+                        },
+                        "Save_Data": {
+                            "Type": "Pass",
+                            "End": true
+                        }
+                    },
+                    "StartAt": "Clean_Data"
+                },
+                {
+                    "States": {
+                        "Validate_Data": {
+                            "Type": "Pass",
+                            "Next": "Process_Invalid_Data"
+                        },
+                        "Process_Invalid_Data": {
+                            "Type": "Pass",
+                            "End": true
+                        }
+                    },
+                    "StartAt": "Validate_Data"
+                }
+            ],
+            "Next": "Load_Data"
+        },
+        "Load_Data": {
+            "Type": "Pass",
+            "Next": "Process_Data"
+        },
+        "Process_Data": {
+            "Type": "Succeed"
+        }
+    },
+    "StartAt": "ParallelIndependentProcessing",
+    "Comment": "Combined Data Processing Pipeline",
+    "TimeoutSeconds": 60
+}

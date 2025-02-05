@@ -1,0 +1,78 @@
+{
+    "States": {
+        "SystemErrorHandler": {
+            "Type": "Pass",
+            "ResultPath": "$.error_details",
+            "Parameters": {
+                "error": "System failure detected",
+                "action": "alerting"
+            },
+            "Next": "SystemFailure"
+        },
+        "SystemFailure": {
+            "Type": "Fail"
+        },
+        "TimeoutHandler": {
+            "Type": "Pass",
+            "ResultPath": "$.error_details",
+            "Parameters": {
+                "error": "Operation timed out",
+                "action": "logging"
+            },
+            "Next": "GracefulTimeout"
+        },
+        "GracefulTimeout": {
+            "Type": "Succeed"
+        },
+        "ProcessingTask": {
+            "Retry": [
+                {
+                    "ErrorEquals": [
+                        "States.TaskFailed",
+                        "States.Timeout"
+                    ],
+                    "IntervalSeconds": 1,
+                    "MaxAttempts": 3,
+                    "BackoffRate": 2.0
+                },
+                {
+                    "ErrorEquals": [
+                        "States.TaskFailed"
+                    ],
+                    "IntervalSeconds": 5,
+                    "MaxAttempts": 1
+                }
+            ],
+            "Catch": [
+                {
+                    "ErrorEquals": [
+                        "States.TaskFailed"
+                    ],
+                    "Next": "SystemErrorHandler"
+                },
+                {
+                    "ErrorEquals": [
+                        "States.Timeout"
+                    ],
+                    "Next": "TimeoutHandler"
+                }
+            ],
+            "Type": "Task",
+            "InputPath": "$.data",
+            "OutputPath": "$.output",
+            "ResultPath": "$.result",
+            "Parameters": {
+                "FunctionName": "error-handling-demo",
+                "Payload": {
+                    "data.$": "$.data",
+                    "context.$": "$$"
+                }
+            },
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "End": true
+        }
+    },
+    "StartAt": "ProcessingTask",
+    "Comment": "Error Handling Demonstration",
+    "TimeoutSeconds": 300
+}

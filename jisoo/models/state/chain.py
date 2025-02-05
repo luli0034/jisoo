@@ -137,7 +137,7 @@ class Chain(BaseModel):
         Note:
             This method handles both direct state transitions and nested chain transitions
         """
-        if not hasattr(current_state, "catch"):
+        if not hasattr(current_state, "catch") or current_state.catch is None:
             return
 
         for catch in current_state.catch:

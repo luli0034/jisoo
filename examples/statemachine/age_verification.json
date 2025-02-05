@@ -1,0 +1,42 @@
+{
+    "States": {
+        "Start": {
+            "Type": "Pass",
+            "Comment": "Starting age verification",
+            "Next": "AgeVerification"
+        },
+        "ProcessAdult": {
+            "Type": "Pass",
+            "Comment": "Processing as adult",
+            "Next": "Success"
+        },
+        "Success": {
+            "Type": "Succeed"
+        },
+        "ProcessMinor": {
+            "Type": "Pass",
+            "Comment": "Processing as minor with guardian",
+            "Next": "Success"
+        },
+        "AgeVerification": {
+            "Type": "Choice",
+            "Choices": [
+                {
+                    "Variable": "$.age",
+                    "NumericGreaterThanEquals": 18,
+                    "Next": "ProcessAdult"
+                },
+                {
+                    "Variable": "$.has_guardian",
+                    "BooleanEquals": true,
+                    "Next": "ProcessMinor"
+                }
+            ],
+            "Default": "Fail"
+        },
+        "Fail": {
+            "Type": "Fail"
+        }
+    },
+    "StartAt": "Start"
+}

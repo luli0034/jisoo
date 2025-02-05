@@ -1,0 +1,47 @@
+{
+    "States": {
+        "ErrorHandler": {
+            "Type": "Pass",
+            "ResultPath": "$.error_details",
+            "Parameters": {
+                "error": "Order processing failed"
+            },
+            "Next": "ProcessOrderFailed"
+        },
+        "ProcessOrderFailed": {
+            "Type": "Fail"
+        },
+        "ProcessOrders": {
+            "Catch": [
+                {
+                    "ErrorEquals": [
+                        "States.TaskFailed",
+                        "States.Runtime"
+                    ],
+                    "Next": "ErrorHandler"
+                }
+            ],
+            "Type": "Map",
+            "InputPath": "$.orders",
+            "ResultPath": "$.processed_orders",
+            "ItemProcessor": {
+                "States": {
+                    "ProcessOrder": {
+                        "Type": "Pass",
+                        "End": true
+                    }
+                },
+                "StartAt": "ProcessOrder",
+                "ProcessorConfig": {
+                    "Mode": "INLINE"
+                }
+            },
+            "Next": "AllOrdersProcessed"
+        },
+        "AllOrdersProcessed": {
+            "Type": "Succeed"
+        }
+    },
+    "StartAt": "ProcessOrders",
+    "Comment": "Order Processing Workflow"
+}
