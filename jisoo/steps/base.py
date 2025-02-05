@@ -101,7 +101,6 @@ class Step:
     def get_parameters(self) -> dict:
         raise NotImplementedError
 
-
     def __call__(self):
         return Service(
             id=self.id,

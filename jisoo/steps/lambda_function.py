@@ -8,7 +8,7 @@ class LambdaAction(Enum):
     Invoke = "invoke"
 
 
-class LambdaInvodeStep(Step):
+class LambdaInvokeStep(Step):
 
     def __init__(
         self,
