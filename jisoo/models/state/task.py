@@ -79,7 +79,7 @@ class Task(State, ErrorHandler, NextHandler):
     parameters: Optional[dict] = None
 
     # Task specific fields
-    resource: str
+    resource: Optional[str] = None
     credentials: Optional[dict] = None
     timeout_seconds: Optional[int] = None
     timeout_seconds_path: Optional[str] = None
