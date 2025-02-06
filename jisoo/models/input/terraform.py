@@ -74,11 +74,3 @@ class TFVariables:
         with open(path, "w+") as f:
             for key in self._variables.keys():
                 f.write(key + "\n")
-
-
-tf_vars = TFVariables()
-tf_vars.add_variable("region")
-tf_vars.add_variable("instance_type")
-print(tf_vars.get("region"))
-print(tf_vars.get_variable("region"))
-tf_vars.dump_keys("variables.txt")

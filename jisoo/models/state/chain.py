@@ -65,6 +65,7 @@ class Chain(BaseModel):
         """
         states = {}
         for i, current_state in enumerate(self.steps):
+
             if current_state.type == "Choice":
                 self._process_choice_state(
                     states,

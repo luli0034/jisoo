@@ -1,7 +1,7 @@
 from jisoo.models.state import Task
-from jisoo.models.common import ServiceType, INTEGRATION_PATTERN_SUPPORT
+from jisoo.models.common import ServiceType, INTEGRATION_PATTERN_SUPPORT, CommonObject
 from pydantic import model_validator
-from typing import Literal, Any, Optional
+from typing import Literal, Any, Optional, List
 from enum import Enum
 
 
@@ -24,12 +24,20 @@ class Service(Task):
         return resource
 
     def set_parameters(self) -> dict:
-        params = set(self.model_fields.keys()) - set(Service.model_fields.keys())
-        parameters = {}
-        for param in params:
-            if getattr(self, param):
-                parameters[self.to_pascalcase(param)] = getattr(self, param)
-        return parameters
+        return {
+            self.to_pascalcase(param): (
+                v.to_dict()
+                if isinstance(v, CommonObject)
+                else (
+                    [i.to_dict() for i in v]
+                    if isinstance(v, list) and v and isinstance(v[0], CommonObject)
+                    else v
+                )
+            )
+            for param in set(self.model_fields.keys())
+            - set(Service.model_fields.keys())
+            if (v := getattr(self, param))
+        }
 
     @model_validator(mode="after")
     def valid_supported_pattern(self):
@@ -70,8 +78,9 @@ class Service(Task):
         warnings: bool = True,
     ) -> dict[str, Any]:
         """Override model_dump to only include fields from parent Task class."""
-        # Get all fields from parent class (Task)
         parent_fields = set(Task.model_fields.keys())
+        # BUG: Wrokaround soluation, cause the next field is private attribute in parient class
+        parent_fields.add("next")
 
         # Call parent's model_dump with include set to parent fields
         return super().model_dump(

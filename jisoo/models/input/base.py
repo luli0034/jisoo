@@ -118,3 +118,19 @@ class StepInput(JSONPath):
             schema: Optional schema structure for the step input.
         """
         super().__init__(schema, path="$")
+
+
+class RootInput(JSONPath):
+    """Handler for step input placeholders in workflow definitions.
+
+    This class provides a specialized JSONPath implementation for accessing
+    step input values in workflow definitions.
+    """
+
+    def __init__(self, schema: Optional[Any] = None) -> None:
+        """Initialize a new StepInput instance.
+
+        Args:
+            schema: Optional schema structure for the step input.
+        """
+        super().__init__(schema, path="$$")
