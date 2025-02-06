@@ -5,7 +5,7 @@ from pydantic import ValidationError
 
 
 def test_lambda_step():
-    
+
     lambda_step = LambdaInvokeStep(
         function_name="example",
         id="example",
@@ -26,11 +26,11 @@ def test_lambda_step():
         client_context="example",
         invocation_type="RequestResponse",
     )
-    step_dict = lambda_step().to_dict()
+    step_dict = lambda_step.to_dict()
     """
     {'Type': 'Task', 'InputPath': '$.input', 'OutputPath': '$.output', 'ResultPath': '$.result', 'ResultSelector': '$.result', 'Parameters': {'Payload': {'key': 'value'}, 'Qualifier': 'example', 'LogType': 'Tail', 'ClientContext': 'example', 'InvocationType': 'RequestResponse'}, 'Resource': 'arn:aws:states:::aws-sdk:lambda:invoke.waitForTaskToken', 'Credentials': {'access_key': 'key', 'secret_key': 'key'}, 'TimeoutSeconds': 10, 'TimeoutSecondsPath': '$.timeout', 'HeartbeatSeconds': 10, 'HeartbeatSecondsPath': '$.heartbeat'}
     """
-    print(step_dict)
+
     assert step_dict["Type"] == "Task"
     assert step_dict["InputPath"] == "$.input"
     assert step_dict["OutputPath"] == "$.output"
@@ -41,7 +41,10 @@ def test_lambda_step():
     assert step_dict["Parameters"]["LogType"] == "Tail"
     assert step_dict["Parameters"]["ClientContext"] == "example"
     assert step_dict["Parameters"]["InvocationType"] == "RequestResponse"
-    assert step_dict["Resource"] == "arn:aws:states:::aws-sdk:lambda:invoke.waitForTaskToken"
+    assert (
+        step_dict["Resource"]
+        == "arn:aws:states:::aws-sdk:lambda:invoke.waitForTaskToken"
+    )
     assert step_dict["Credentials"]["roleArn"] == "example-role-arn"
     assert step_dict["TimeoutSeconds"] == 10
     assert step_dict["TimeoutSecondsPath"] == "$.timeout"
@@ -49,10 +52,17 @@ def test_lambda_step():
     assert step_dict["HeartbeatSecondsPath"] == "$.heartbeat"
 
     with pytest.raises(ValueError):
-        step = LambdaInvokeStep(
+        LambdaInvokeStep(
             function_name="example",
             id="example",
             integration_pattern="runTask",
             integration_type="aws-sdk",
-        )()
-        
+        )
+
+    with pytest.raises(ValidationError):
+        LambdaInvokeStep(
+            function_name="example",
+            id="example",
+            integration_pattern="runTask",
+            integration_type="optimided",
+        )

@@ -182,8 +182,7 @@ def test_task_with_error_control():
     )
 
     state_dict = task_state.to_dict()
-    print(state_dict)
-    raise
+
     assert state_dict["Type"] == "Task"
     assert state_dict["InputPath"] == "$.input"
     assert state_dict["OutputPath"] == "$.output"

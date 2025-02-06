@@ -100,5 +100,24 @@ def test_graph_with_error_handle():
     )
 
     graph = Graph(branch=task_state, comment="Task State Graph", timeout_seconds=60)
-    print(graph.definition)
-    raise
+    graph_dict = graph.to_dict()
+    assert graph_dict["Comment"] == "Task State Graph"
+    assert graph_dict["TimeoutSeconds"] == 60
+    assert graph_dict["StartAt"] == "TaskState"
+    assert graph_dict["States"]["TaskState"]["Type"] == "Task"
+    assert graph_dict["States"]["TaskState"]["InputPath"] == "$.input"
+    assert graph_dict["States"]["TaskState"]["OutputPath"] == "$.output"
+    assert (
+        graph_dict["States"]["TaskState"]["Resource"]
+        == "arn:aws:states:::lambda:invoke"
+    )
+    assert (
+        graph_dict["States"]["TaskState"]["Parameters"]["FunctionName"] == "my-function"
+    )
+    assert graph_dict["States"]["TaskState"]["ResultPath"] == "$.result"
+    assert graph_dict["States"]["TaskState"]["Retry"][0]["ErrorEquals"] == [
+        "States.TaskFailed"
+    ]
+    assert graph_dict["States"]["TaskState"]["Catch"][0]["ErrorEquals"] == [
+        "States.TaskFailed"
+    ]
