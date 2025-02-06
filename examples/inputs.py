@@ -1,8 +1,13 @@
-from jisoo.models.input.base import ExecutionInput, StepInput
+from jisoo.models.input.base import StepInput
+from jisoo.models.input.terraform import TFVariables
+from jisoo.models.common import KeyValuePair
 
-schema = {"foo": ["3", "2"], "bar": int}
-exi = ExecutionInput(schema=schema)
-print(exi.foo[0], exi.bar)
+tfvars = TFVariables()
+tfvars.add_variable("foo")
+schema = {tfvars.get("foo"): ["3", "2"], "bar": int}
+i = StepInput(schema=schema)
+# print(i.get(tfvars.get("foo")))
 
-si = StepInput(schema=schema)
-print(si.foo[0], si.bar)
+a = KeyValuePair(name="foo", value="bar")
+b = KeyValuePair(name="foo", value=i.get(tfvars.get("foo")))
+print(b.to_dict())

@@ -1,0 +1,90 @@
+{
+    "States": {
+        "invoke_lambda_example": {
+            "Type": "Task",
+            "Parameters": {
+                "FunctionName": "${LAMBDA_FUNCTION_NAME}",
+                "Payload": {
+                    "TASK_TOKEN.$": "$$.Task.Token",
+                    "FOO.$": "$.foo"
+                }
+            },
+            "Resource": "arn:aws:states:::lambda:invoke.waitForTaskToken",
+            "Next": "map_running_task"
+        },
+        "map_running_task": {
+            "Type": "Map",
+            "ItemProcessor": {
+                "States": {
+                    "run_task_failed": {
+                        "Type": "Fail"
+                    },
+                    "example": {
+                        "Catch": [
+                            {
+                                "ErrorEquals": [
+                                    "States.ALL"
+                                ],
+                                "Next": "run_task_failed"
+                            }
+                        ],
+                        "Type": "Task",
+                        "ResultPath": "$.TaskResult",
+                        "Parameters": {
+                            "NetworkConfiguration": {
+                                "AwsvpcConfiguration": {
+                                    "Subnets": [
+                                        "$.${TASK_PRIVATE_SUBNET_1}",
+                                        "$.${TASK_PRIVATE_SUBNET_2}",
+                                        "$.${TASK_PRIVATE_SUBNET_3}"
+                                    ],
+                                    "AssignPublicIp": "DISABLE"
+                                }
+                            },
+                            "Overrides": {
+                                "ContainerOverrides": [
+                                    {
+                                        "Name": "$.${ECS_TASK_NAME}",
+                                        "Environment": [
+                                            {
+                                                "Name": "OBJECTS",
+                                                "Value.$": "$.${CONSUMER_OUTPUT_KEY_ITEMS_KEY}"
+                                            },
+                                            {
+                                                "Name": "TASK_TOKEN",
+                                                "Value.$": "$$.TASK_TOKEN"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            "LaunchType": "FARGATE",
+                            "TaskDefinition": "$.${ECS_TASK_DEFINITION_BATCH_INGESTION}",
+                            "Cluster": "$.${ECS_CLUSTER_BATCH_INGESTION}"
+                        },
+                        "Resource": "arn:aws:states:::ecs:runTask.waitForTaskToken",
+                        "Next": "run_ecs_success"
+                    },
+                    "run_ecs_success": {
+                        "Type": "Succeed"
+                    }
+                },
+                "StartAt": "example",
+                "ProcessorConfig": {
+                    "Mode": "INLINE"
+                }
+            },
+            "ItemsPath": "${CONSUMER_OUTPUT_KEY_ITEMS_KEY}",
+            "MaxConcurrency": 5,
+            "Next": "transform"
+        },
+        "transform": {
+            "Type": "Pass",
+            "InputPath": "$.TaskResult",
+            "End": true
+        }
+    },
+    "StartAt": "invoke_lambda_example",
+    "Comment": "Batch Ingestion",
+    "TimeoutSeconds": 60
+}
