@@ -1,5 +1,7 @@
 # JSON Integration Statemachine for Orchestration Operations
 
+Jisoo is a Python-based tool for managing AWS Step Functions. It uses Pydantic to ensure valid definitions and integrates with Terraform for a smoother CI/CD workflow. By adopting a configuration-as-code approach, Jisoo simplifies definition management, eliminating the need for lengthy JSON files or manual work in the AWS console, making development more efficient and user-friendly.
+
 # State
 
 ## Parallel
