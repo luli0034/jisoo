@@ -2,6 +2,20 @@
 
 Jisoo is a Python-based tool for managing AWS Step Functions. It uses Pydantic to ensure valid definitions and integrates with Terraform for a smoother CI/CD workflow. By adopting a configuration-as-code approach, Jisoo simplifies definition management, eliminating the need for lengthy JSON files or manual work in the AWS console, making development more efficient and user-friendly.
 
+# Smooth CI/CD with Terraform 
+
+1. Run `definition.py` to generate the Step Functions template and the required keys to be populated by Terraform.
+2. Use templatefile in Terraform to load the template and substitute values from Terraform variables.
+3. Deploy the Step Functions state machine to AWS using terraform apply.
+
+
+```bash
+python examples/terraform/definition.py
+# will create two files: definition.json tfvars.txt 
+cd examples/terraform
+terraform init
+terraform apply -auto-approve
+```
 # State
 
 ## Parallel
@@ -48,20 +62,9 @@ The Retry and Catch states provide robust error handling capabilities in your st
 
 Retry allows you to automatically retry failed states using different backoff strategies. This is particularly useful for handling transient failures.
 
-#### Retry Properties:
-- `ErrorEquals`: Array of error names that trigger the retry
-- `IntervalSeconds`: Duration (in seconds) before the first retry attempt
-- `MaxAttempts`: Maximum number of retry attempts (0 means no retries)
-- `BackoffRate`: Multiplier for the retry interval between attempts
-
 ### Catch
 
 Catch handles errors that occur in a state, allowing you to implement fallback logic or custom error handling paths.
-
-#### Catch Properties:
-- `ErrorEquals`: Array of error names that trigger this catch
-- `Next`: The next state to transition to when catching the error
-- `ResultPath`: Location in the state output to store the error (optional)
 
 ### Example
 
