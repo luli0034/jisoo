@@ -58,6 +58,18 @@ def test_dynamodb_get_item_step():
             expression_attribute_names={"key": "value"},
         )
 
+    with pytest.raises(ValueError):
+        DynamoDBGetItemStep(
+            id="example",
+            table_name="example",
+            key={"key": {"key": "value"}},
+            consistent_read=True,
+            return_consumed_capacity="TOTAL",
+            projection_expression="example",
+            expression_attribute_names={"key": "value"},
+            integration_pattern="runTask",
+        )
+
 
 def test_dynamodb_batch_get_item_step():
 
