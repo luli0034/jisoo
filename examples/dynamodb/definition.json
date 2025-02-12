@@ -3,11 +3,11 @@
         "invoke_lambda_example": {
             "Type": "Task",
             "Parameters": {
-                "FunctionName": "${LAMBDA_FUNCTION_NAME}",
                 "Payload": {
                     "TASK_TOKEN.$": "$$.Task.Token",
                     "FOO.$": "$.foo"
-                }
+                },
+                "FunctionName": "example-lambda-function"
             },
             "Resource": "arn:aws:states:::lambda:invoke.waitForTaskToken",
             "Next": "map_running_task"
@@ -31,25 +31,15 @@
                         "Type": "Task",
                         "ResultPath": "$.TaskResult",
                         "Parameters": {
-                            "TaskDefinition": "$.${ECS_TASK_DEFINITION_BATCH_INGESTION}",
-                            "NetworkConfiguration": {
-                                "AwsvpcConfiguration": {
-                                    "Subnets": [
-                                        "$.${TASK_PRIVATE_SUBNET_1}",
-                                        "$.${TASK_PRIVATE_SUBNET_2}",
-                                        "$.${TASK_PRIVATE_SUBNET_3}"
-                                    ],
-                                    "AssignPublicIp": "DISABLE"
-                                }
-                            },
+                            "TaskDefinition": "example-ecs-task-definition",
                             "Overrides": {
                                 "ContainerOverrides": [
                                     {
-                                        "Name": "$.${ECS_TASK_NAME}",
+                                        "Name": "example-ecs-task",
                                         "Environment": [
                                             {
                                                 "Name": "OBJECTS",
-                                                "Value.$": "$.${CONSUMER_OUTPUT_KEY_ITEMS_KEY}"
+                                                "Value.$": "$.example-consumer-output-key"
                                             },
                                             {
                                                 "Name": "TASK_TOKEN",
@@ -59,8 +49,18 @@
                                     }
                                 ]
                             },
-                            "Cluster": "$.${ECS_CLUSTER_BATCH_INGESTION}",
-                            "LaunchType": "FARGATE"
+                            "LaunchType": "FARGATE",
+                            "Cluster": "example-ecs-cluster",
+                            "NetworkConfiguration": {
+                                "AwsvpcConfiguration": {
+                                    "Subnets": [
+                                        "example-subnet-1",
+                                        "example-subnet-2",
+                                        "example-subnet-3"
+                                    ],
+                                    "AssignPublicIp": "DISABLE"
+                                }
+                            }
                         },
                         "Resource": "arn:aws:states:::ecs:runTask.waitForTaskToken",
                         "Next": "run_ecs_success"
@@ -74,7 +74,7 @@
                     "Mode": "INLINE"
                 }
             },
-            "ItemsPath": "${CONSUMER_OUTPUT_KEY_ITEMS_KEY}",
+            "ItemsPath": "$.example-consumer-output-key",
             "MaxConcurrency": 5,
             "Next": "transform"
         },
