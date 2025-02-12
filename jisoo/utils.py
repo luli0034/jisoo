@@ -1,17 +1,15 @@
 from enum import Enum
 
 
-def dynamodb_to_enum(class_name: str, dynamodb_response: dict):
+def dynamodb_map_to_dict(dynamodb_response: dict):
     """
-    Converts a DynamoDB response to an Enum class.
+    Converts a DynamoDB response to dict.
 
     Args:
-        class_name (str): The name of the Enum class.
+
         dynamodb_response (dict): The dictionary returned from DynamoDB.
 
     Returns:
-        Enum: A dynamically created Enum class.
+        Dict[str, str]: The dictionary representation of the DynamoDB response.
     """
-    enum_dict = {key: value["S"] for key, value in dynamodb_response.items()}
-
-    return Enum(class_name, enum_dict)
+    return {key: value["S"] for key, value in dynamodb_response.items()}
