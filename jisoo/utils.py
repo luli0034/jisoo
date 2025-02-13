@@ -1,7 +1,7 @@
-from enum import Enum
+from boto3.dynamodb.types import TypeDeserializer
 
 
-def dynamodb_map_to_dict(dynamodb_response: dict):
+def dynamodb_item_deserialize(dynamodb_response: dict):
     """
     Converts a DynamoDB response to dict.
 
@@ -12,4 +12,8 @@ def dynamodb_map_to_dict(dynamodb_response: dict):
     Returns:
         Dict[str, str]: The dictionary representation of the DynamoDB response.
     """
-    return {key: value["S"] for key, value in dynamodb_response.items()}
+
+    deseializer = TypeDeserializer()
+    return {
+        key: deseializer.deserialize(value) for key, value in dynamodb_response.items()
+    }
