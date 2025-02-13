@@ -4,3 +4,4 @@ from jisoo.steps.dynamodb import *
 from jisoo.steps.ecs import *
 from jisoo.steps.stepfunction import *
 from jisoo.steps.eventbridge import *
+from jisoo.steps.sqs import *
