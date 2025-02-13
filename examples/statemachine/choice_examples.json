@@ -1,0 +1,41 @@
+{
+    "States": {
+        "ListExecutions": {
+            "Type": "Task",
+            "ResultPath": "$.result",
+            "ResultSelector": {
+                "RunningExecutions.$": "States.ArrayLength($.Executions)"
+            },
+            "Parameters": {
+                "StatusFilter": "RUNNING",
+                "StateMachineArn": "example-arn"
+            },
+            "Resource": "arn:aws:states:::aws-sdk:states:listExecutions",
+            "Next": "HasRunningExecution"
+        },
+        "SkipExecution": {
+            "Type": "Succeed"
+        },
+        "HasRunningExecution": {
+            "Type": "Choice",
+            "Choices": [
+                {
+                    "And": [
+                        {
+                            "Variable": "$.StartFromStepFunction",
+                            "BooleanEquals": false
+                        },
+                        {
+                            "Variable": "$.result.RunningExecutions",
+                            "NumericGreaterThan": 1
+                        }
+                    ],
+                    "Next": "SkipExecution"
+                }
+            ]
+        }
+    },
+    "StartAt": "ListExecutions",
+    "Comment": "Combined Data Processing Pipeline",
+    "TimeoutSeconds": 60
+}

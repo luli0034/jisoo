@@ -103,29 +103,13 @@ class Chain(BaseModel):
         choices = []
         for choice_rule in current.choices:
             choices.append(choice_rule.to_dict())
-            self._process_choice_rule(states, choice_rule)
+            choice_rule.rule._next = choice_rule.next.steps[0].id
+            # Recursively process the chain
+            states.update(choice_rule.next._states)
             current.choices = choices
 
             if next:
                 current._default = next.id
-
-    def _process_choice_rule(self, states: dict, choice_rule) -> None:
-        """
-        Processes a single choice rule and sets up its transitions.
-
-        Args:
-            states (dict): Dictionary of all states in the chain
-            choice_rule: The choice rule to process
-
-        Note:
-            This method handles both direct state transitions and nested chain transitions
-        """
-        if isinstance(choice_rule.next, State):
-            choice_rule.rule._next = choice_rule.next.id
-        elif isinstance(choice_rule.next, Chain):
-            choice_rule.rule._next = choice_rule.next.steps[0].id
-            # Recursively process the chain
-            states.update(choice_rule.next._states)
 
     def _process_catch(self, states: dict, current_state) -> None:
         """

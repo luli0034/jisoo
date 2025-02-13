@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 from jisoo.models.rule import BaseRule
 from jisoo.models.state.base import State
 from jisoo.models.state.chain import Chain
@@ -34,6 +34,12 @@ class ChoiceRule(BaseModel):
 
     rule: BaseRule
     next: State | Chain
+
+    @model_validator(mode="after")
+    def set_next_state(self):
+        if isinstance(self.next, State):
+            self.next = Chain(steps=[self.next])
+        return self
 
     def to_dict(self) -> dict:
         """
