@@ -1,5 +1,6 @@
 from jisoo.models.state import Pass, Chain, Succeed, Graph, Map, Fail, Catch
 from jisoo.models.common import ErrorEqualsEnum
+from jisoo.steps import DynamoDBGetItemStep
 
 
 def create_order_processing_workflow():
@@ -13,7 +14,9 @@ def create_order_processing_workflow():
 
     # Define a Pass state to simulate order processing
     def create_order_processing_task():
-        return Pass(id=f"ProcessOrder")
+        return DynamoDBGetItemStep(
+            id="ProcessOrder", table_name="Orders", key={"foo": {"S": "bar"}}
+        )
 
     def create_error_handler():
         return Catch(

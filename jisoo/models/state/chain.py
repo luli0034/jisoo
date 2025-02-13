@@ -158,7 +158,6 @@ class Chain(BaseModel):
             it will be marked as an end state
         """
         self._validate_state_has_field(current, "_next")
-
         # Set the next state
         if next:
             current._next = next.id

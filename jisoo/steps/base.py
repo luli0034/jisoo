@@ -141,7 +141,7 @@ class Service(Task):
         Returns:
             dict[str, Any]: Dictionary containing only the parent Task fields
         """
-        parent_fields = set(Task.model_fields.keys()) | {"next"}
+        parent_fields = set(Task.model_fields.keys()) | {"next", "end"}
 
         return super().model_dump(
             mode=mode,

@@ -27,7 +27,16 @@
             "ItemProcessor": {
                 "States": {
                     "ProcessOrder": {
-                        "Type": "Pass",
+                        "Type": "Task",
+                        "Parameters": {
+                            "TableName": "Orders",
+                            "Key": {
+                                "foo": {
+                                    "S": "bar"
+                                }
+                            }
+                        },
+                        "Resource": "arn:aws:states:::dynamodb:getItem",
                         "End": true
                     }
                 },
