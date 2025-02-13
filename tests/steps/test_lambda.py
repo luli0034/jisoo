@@ -14,7 +14,7 @@ def test_lambda_step():
         input_path="$.input",
         output_path="$.output",
         result_path="$.result",
-        result_selector="$.result",
+        result_selector={"foo.$": "$.bar"},
         credentials={"roleArn": "example-role-arn"},
         timeout_seconds=10,
         timeout_seconds_path="$.timeout",
@@ -35,7 +35,7 @@ def test_lambda_step():
     assert step_dict["InputPath"] == "$.input"
     assert step_dict["OutputPath"] == "$.output"
     assert step_dict["ResultPath"] == "$.result"
-    assert step_dict["ResultSelector"] == "$.result"
+    assert step_dict["ResultSelector"] == {"foo.$": "$.bar"}
     assert step_dict["Parameters"]["Payload"] == {"key": "value"}
     assert step_dict["Parameters"]["Qualifier"] == "example"
     assert step_dict["Parameters"]["LogType"] == "Tail"

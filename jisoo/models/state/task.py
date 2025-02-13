@@ -1,6 +1,6 @@
 from jisoo.models.state import State
 from jisoo.models.state.handler import ErrorHandler, NextHandler
-from typing import Optional
+from typing import Optional, Union, Dict
 from pydantic import Field
 
 
@@ -40,7 +40,7 @@ class Task(State, ErrorHandler, NextHandler):
             Defaults to None (entire output)
         result_path (Optional[str]): JSONPath that specifies where to place the output.
             Defaults to None
-        result_selector (Optional[str]): Optional path to select specific data from results.
+        result_selector (Optional[Dict]): Optional path to select specific data from results.
             Defaults to None
         parameters (Optional[dict]): Parameters to be passed to the task.
             Defaults to None
@@ -75,7 +75,7 @@ class Task(State, ErrorHandler, NextHandler):
     input_path: Optional[str] = None
     output_path: Optional[str] = None
     result_path: Optional[str] = None
-    result_selector: Optional[str] = None
+    result_selector: Optional[Dict] = None
     parameters: Optional[dict] = None
 
     # Task specific fields

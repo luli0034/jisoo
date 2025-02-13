@@ -111,7 +111,7 @@ def test_map():
         output_path="$.output",
         result_path="$.result",
         parameters={"message": "Hello World"},
-        result_selector="$.result",
+        result_selector={"foo.$": "$.bar"},
         item_processor=Chain(steps=[Pass(id="Task1"), Pass(id="Task2")]),
     )
 
@@ -121,7 +121,7 @@ def test_map():
     assert state_dict["OutputPath"] == "$.output"
     assert state_dict["ResultPath"] == "$.result"
     assert state_dict["Parameters"]["message"] == "Hello World"
-    assert state_dict["ResultSelector"] == "$.result"
+    assert state_dict["ResultSelector"] == {"foo.$": "$.bar"}
     assert state_dict["ItemProcessor"]["States"]["Task1"]["Type"] == "Pass"
     assert state_dict["ItemProcessor"]["States"]["Task2"]["Type"] == "Pass"
 

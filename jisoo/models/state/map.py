@@ -40,7 +40,7 @@ class Map(State, ErrorHandler, NextHandler):
             Defaults to None (entire output)
         result_path (Optional[str]): JSONPath that specifies where to place the output.
             Defaults to None
-        result_selector (Optional[str]): Optional path to select specific data from results.
+        result_selector (Optional[Dict]): Optional path to select specific data from results.
             Defaults to None
         parameters (Optional[dict]): Parameters to be passed to each iteration.
             Defaults to None
@@ -72,7 +72,7 @@ class Map(State, ErrorHandler, NextHandler):
     input_path: Optional[str] = None
     output_path: Optional[str] = None
     result_path: Optional[str] = None
-    result_selector: Optional[str] = None
+    result_selector: Optional[Dict] = None
     parameters: Optional[dict] = None
     item_processor: Chain | dict
     items_path: Optional[str] = None

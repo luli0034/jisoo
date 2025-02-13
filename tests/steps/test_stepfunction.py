@@ -12,7 +12,7 @@ def test_start_execution():
         input_path="$.input",
         output_path="$.output",
         result_path="$.result",
-        result_selector="$.result",
+        result_selector={"foo.$": "$.bar"},
         parameters={"key": "value"},
         input={"key": "value"},
         name="new-execution",
@@ -26,7 +26,7 @@ def test_start_execution():
     assert step_dict["InputPath"] == "$.input"
     assert step_dict["OutputPath"] == "$.output"
     assert step_dict["ResultPath"] == "$.result"
-    assert step_dict["ResultSelector"] == "$.result"
+    assert step_dict["ResultSelector"] == {"foo.$": "$.bar"}
     assert step_dict["Parameters"]["Input"] == {"key": "value"}
     assert step_dict["Parameters"]["Name"] == "new-execution"
     assert step_dict["Parameters"]["TraceHeader"] == "example"
@@ -47,7 +47,7 @@ def test_list_executions():
         input_path="$.input",
         output_path="$.output",
         result_path="$.result",
-        result_selector="$.result",
+        result_selector={"foo.$": "$.bar"},
         parameters={"key": "value"},
         max_results=10,
         next_token="example",
@@ -69,7 +69,7 @@ def test_list_executions():
             input_path="$.input",
             output_path="$.output",
             result_path="$.result",
-            result_selector="$.result",
+            result_selector={"foo.$": "$.bar"},
             parameters={"key": "value"},
             max_results=10,
             next_token="example",

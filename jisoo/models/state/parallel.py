@@ -1,6 +1,6 @@
 from jisoo.models.state import State, Chain, Graph
 from jisoo.models.state.handler import ErrorHandler, NextHandler
-from typing import Optional, List
+from typing import Optional, List, Dict
 from pydantic import field_validator, Field, PrivateAttr
 
 
@@ -41,7 +41,7 @@ class Parallel(State, ErrorHandler, NextHandler):
             Defaults to None (entire output)
         result_path (Optional[str]): JSONPath that specifies where to place the output.
             Defaults to None
-        result_selector (Optional[str]): Optional path to select specific data from results.
+        result_selector (Optional[Dict]): Optional path to select specific data from results.
             Defaults to None
         parameters (Optional[dict]): Parameters to be passed to each branch.
             Defaults to None
@@ -69,7 +69,7 @@ class Parallel(State, ErrorHandler, NextHandler):
     input_path: Optional[str] = None
     output_path: Optional[str] = None
     result_path: Optional[str] = None
-    result_selector: Optional[str] = None
+    result_selector: Optional[Dict] = None
     parameters: Optional[dict] = None
 
     @field_validator("branches", mode="after")
