@@ -84,9 +84,10 @@ def test_graph_with_chain():
 
 
 def test_graph_with_error_handle():
-    retry = Retry(error_equals=[ErrorEqualsEnum.TaskFailed])
+    retry = Retry(error_equals=[ErrorEqualsEnum.Events.TaskFailed])
     catch = Catch(
-        error_equals=[ErrorEqualsEnum.TaskFailed], next_steps=Fail(id="FailState")
+        error_equals=[ErrorEqualsEnum.Events.TaskFailed],
+        next_steps=Fail(id="FailState"),
     )
     task_state = Task(
         id="TaskState",

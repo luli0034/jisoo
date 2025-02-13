@@ -2,7 +2,6 @@ from pydantic import computed_field
 from typing import Optional, List
 from jisoo.models.state.base import Block, State
 from jisoo.models.state.chain import Chain
-from jisoo.models.common import ErrorEqualsEnum
 
 
 class Catch(Block):
@@ -22,7 +21,7 @@ class Catch(Block):
     Example:
         >>> from jisoo.models.common import ErrorEqualsEnum
         >>> catch = Catch(
-        ...     error_equals=[ErrorEqualsEnum.STATES_ALL],
+        ...     error_equals=[ErrorEqualsEnum.Events.STATES_ALL],
         ...     next_steps=State(id="ErrorHandler", type="Task")
         ... )
 
@@ -31,7 +30,7 @@ class Catch(Block):
         type determines which recovery path is taken.
     """
 
-    error_equals: List[ErrorEqualsEnum]
+    error_equals: List[str]
     next_steps: State | Chain
 
     def to_dict(self) -> dict:
@@ -40,7 +39,7 @@ class Catch(Block):
         """
 
         return {
-            "ErrorEquals": [error.value for error in self.error_equals],
+            "ErrorEquals": [error for error in self.error_equals],
             "Next": (
                 self.next_steps.id
                 if isinstance(self.next_steps, State)

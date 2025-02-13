@@ -1,7 +1,6 @@
 from jisoo.models.state import State
 from typing import Optional, List
 from jisoo.models.state.base import Block
-from jisoo.models.common import ErrorEqualsEnum
 
 
 class Retry(Block):
@@ -27,7 +26,7 @@ class Retry(Block):
     Example:
         >>> from jisoo.models.common import ErrorEqualsEnum
         >>> retry = Retry(
-        ...     error_equals=[ErrorEqualsEnum.STATES_TIMEOUT],
+        ...     error_equals=[ErrorEqualsEnum.Events.STATES_TIMEOUT],
         ...     interval_seconds=2,
         ...     max_attempts=3,
         ...     backoff_rate=2.0
@@ -40,7 +39,7 @@ class Retry(Block):
         - The error_equals list is processed in order when matching errors
     """
 
-    error_equals: List[ErrorEqualsEnum]
+    error_equals: List[str]
     interval_seconds: Optional[int] = None
     max_attempts: Optional[int] = None
     backoff_rate: Optional[float] = None

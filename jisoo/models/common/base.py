@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field, ConfigDict
 from typing import Literal
 from jisoo.models.input import JSONPath
+from enum import Enum
 
 
 class CommonObject(BaseModel):
@@ -39,3 +40,11 @@ class ResourceRequirement(CommonObject):
 
     type: Literal["GPU", "InferenceAccelerator"]
     value: str  # The amount of the resource
+
+
+class BaseErrors(str, Enum):
+    def __str__(self):
+        return self.value
+
+    def __repr__(self):
+        return repr(self.value)

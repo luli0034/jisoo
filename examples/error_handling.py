@@ -11,19 +11,24 @@ def create_error_handling_workflow():
 
     # Define retry strategies
     transient_retry = Retry(
-        error_equals=[ErrorEqualsEnum.TaskFailed, ErrorEqualsEnum.Timeout],
+        error_equals=[
+            ErrorEqualsEnum.Events.TaskFailed,
+            ErrorEqualsEnum.Events.Timeout,
+        ],
         interval_seconds=1,
         max_attempts=3,
         backoff_rate=2.0,
     )
 
     final_retry = Retry(
-        error_equals=[ErrorEqualsEnum.TaskFailed], interval_seconds=5, max_attempts=1
+        error_equals=[ErrorEqualsEnum.Events.TaskFailed],
+        interval_seconds=5,
+        max_attempts=1,
     )
 
     # Define error handlers
     system_error_handler = Catch(
-        error_equals=[ErrorEqualsEnum.TaskFailed],
+        error_equals=[ErrorEqualsEnum.Events.TaskFailed],
         next_steps=Chain(
             steps=[
                 Pass(
@@ -40,7 +45,7 @@ def create_error_handling_workflow():
     )
 
     timeout_handler = Catch(
-        error_equals=[ErrorEqualsEnum.Timeout],
+        error_equals=[ErrorEqualsEnum.Events.Timeout],
         next_steps=Chain(
             steps=[
                 Pass(

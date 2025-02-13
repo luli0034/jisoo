@@ -38,16 +38,9 @@ class Block(BaseModel):
         Returns:
             dict: A dictionary representation of the model with processed values
         """
+
         return {
-            self.to_pascalcase(k): (
-                v.value
-                if isinstance(v, Enum)
-                else (
-                    [item.value if isinstance(item, Enum) else item for item in v]
-                    if isinstance(v, List)
-                    else v
-                )
-            )
+            self.to_pascalcase(k): (v)
             for k, v in self.model_dump().items()
             if v is not None and k.lower() != "id"
         }

@@ -2,3 +2,4 @@ __pycache__
 .terraform*
 .DS_Store
 .pytest
+tests/dynamodb-local

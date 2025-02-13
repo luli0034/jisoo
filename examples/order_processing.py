@@ -17,7 +17,10 @@ def create_order_processing_workflow():
 
     def create_error_handler():
         return Catch(
-            error_equals=[ErrorEqualsEnum.TaskFailed, ErrorEqualsEnum.Runtime],
+            error_equals=[
+                ErrorEqualsEnum.Events.TaskFailed,
+                ErrorEqualsEnum.Events.Runtime,
+            ],
             next_steps=Chain(
                 steps=[
                     Pass(
