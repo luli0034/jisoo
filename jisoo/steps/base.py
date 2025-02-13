@@ -1,5 +1,10 @@
 from jisoo.models.state import Task
-from jisoo.models.common import ServiceType, INTEGRATION_PATTERN_SUPPORT, CommonObject
+from jisoo.models.common import (
+    ServiceType,
+    INTEGRATION_PATTERN_SUPPORT,
+    CommonObject,
+    INTEGRATION_SDK_RESOURCES,
+)
 from pydantic import model_validator
 from typing import Literal, Any, Optional, Dict, TypeVar, ClassVar
 from enum import Enum
@@ -53,8 +58,11 @@ class Service(Task):
             if self.integration_type == "aws-sdk"
             else base_prefix
         )
-
-        resource = f"{prefix}{self.service.value}:{self.action.value}"
+        if self.integration_type == "aws-sdk":
+            service = INTEGRATION_SDK_RESOURCES[self.service.value]
+        else:
+            service = self.service.value
+        resource = f"{prefix}{service}:{self.action.value}"
 
         if self.integration_pattern:
             suffix = self.INTEGRATION_PATTERNS[self.integration_pattern]

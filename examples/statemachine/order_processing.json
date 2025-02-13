@@ -26,21 +26,29 @@
             "ResultPath": "$.processed_orders",
             "ItemProcessor": {
                 "States": {
+                    "OrderProcessStart": {
+                        "Type": "Pass",
+                        "Next": "ProcessOrder"
+                    },
                     "ProcessOrder": {
                         "Type": "Task",
                         "Parameters": {
-                            "TableName": "Orders",
                             "Key": {
                                 "foo": {
                                     "S": "bar"
                                 }
-                            }
+                            },
+                            "TableName": "Orders"
                         },
                         "Resource": "arn:aws:states:::dynamodb:getItem",
+                        "Next": "OrderProcessEnd"
+                    },
+                    "OrderProcessEnd": {
+                        "Type": "Pass",
                         "End": true
                     }
                 },
-                "StartAt": "ProcessOrder",
+                "StartAt": "OrderProcessStart",
                 "ProcessorConfig": {
                     "Mode": "INLINE"
                 }

@@ -32,7 +32,7 @@ def test_start_execution():
     assert step_dict["Parameters"]["TraceHeader"] == "example"
     assert (
         step_dict["Resource"]
-        == "arn:aws:states:::aws-sdk:states:startExecution.waitForTaskToken"
+        == "arn:aws:states:::aws-sdk:sfn:startExecution.waitForTaskToken"
     )
     assert (
         step_dict["Parameters"]["StateMachineArn"]

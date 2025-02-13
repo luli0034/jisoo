@@ -26,7 +26,7 @@ def test_putevents_step():
     assert step_dict["Type"] == "Task"
     assert (
         step_dict["Resource"]
-        == "arn:aws:states:::aws-sdk:events:putEvents.waitForTaskToken"
+        == "arn:aws:states:::aws-sdk:eventbridge:putEvents.waitForTaskToken"
     )
     assert step_dict["Parameters"]["Entries"] == [
         {

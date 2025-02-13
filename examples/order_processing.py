@@ -39,7 +39,13 @@ def create_order_processing_workflow():
     # Create a Map state to process each order in parallel
     order_processing_map = Map(
         id="ProcessOrders",
-        item_processor=Chain(steps=[create_order_processing_task()]),
+        item_processor=Chain(
+            steps=[
+                Pass(id="OrderProcessStart"),
+                create_order_processing_task(),
+                Pass(id="OrderProcessEnd"),
+            ]
+        ),
         input_path="$.orders",
         result_path="$.processed_orders",
         catch=create_error_handler(),
