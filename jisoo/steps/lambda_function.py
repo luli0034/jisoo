@@ -25,8 +25,8 @@ class LambdaInvokeStep(Service):
 LambdaDefaultRetry = Retry(
     error_equals=[
         ErrorEqualsEnum.Lambda.ServiceException,
-        ErrorEqualsEnum.Lambda.ClientExecutionTimeoutException,
         ErrorEqualsEnum.Lambda.AWSLambdaException,
+        ErrorEqualsEnum.Lambda.SdkClientException,
         ErrorEqualsEnum.Lambda.TooManyRequestsException,
     ],
     interval_seconds=1,
