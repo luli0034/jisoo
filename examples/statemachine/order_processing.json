@@ -33,12 +33,12 @@
                     "ProcessOrder": {
                         "Type": "Task",
                         "Parameters": {
+                            "TableName": "Orders",
                             "Key": {
                                 "foo": {
-                                    "S": "bar"
+                                    "S.$": "$.bar"
                                 }
-                            },
-                            "TableName": "Orders"
+                            }
                         },
                         "Resource": "arn:aws:states:::dynamodb:getItem",
                         "Next": "OrderProcessEnd"

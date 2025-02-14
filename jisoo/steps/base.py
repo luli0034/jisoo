@@ -1,13 +1,16 @@
+from enum import Enum
+from typing import Any, ClassVar, Dict, Literal, Optional, TypeVar, Union
+from pydantic import model_validator
+
 from jisoo.models.state import Task
 from jisoo.models.common import (
     ServiceType,
     INTEGRATION_PATTERN_SUPPORT,
     CommonObject,
     INTEGRATION_SDK_RESOURCES,
+    JSONPath,
 )
-from pydantic import model_validator
-from typing import Literal, Any, Optional, Dict, TypeVar, ClassVar
-from enum import Enum
+from jisoo.utils import replace_keys_with_prefix
 
 T = TypeVar("T", bound="CommonObject")
 
@@ -16,87 +19,107 @@ class Service(Task):
     """
     A service class that handles AWS service integration configurations for state machines.
 
+    This class manages the configuration and validation of AWS service integrations,
+    including resource ARN construction and parameter formatting.
+
     Attributes:
         service (ServiceType): The type of AWS service to integrate with
         integration_type (Literal["optimized", "aws-sdk"]): Integration method with AWS services
         integration_pattern (Literal[None, "runTask", "waitForTaskToken"]): Task execution pattern
         action (Enum): The service action to perform
+        resource (str): The constructed AWS resource ARN
+        parameters (dict): Formatted parameters for the service configuration
     """
 
-    # Class level constants
-    INTEGRATION_PATTERNS: ClassVar[Dict] = {
+    # Class level constants with better type hints
+    INTEGRATION_PATTERNS: ClassVar[Dict[str, str]] = {
         "runTask": "sync",
         "waitForTaskToken": "waitForTaskToken",
     }
 
-    PATTERN_MESSAGES: ClassVar[Dict] = {
+    PATTERN_MESSAGES: ClassVar[Dict[str, str]] = {
         "runTask": "Run a Job (.sync)",
         "waitForTaskToken": "Wait for Callback (.waitForTaskToken)",
     }
 
+    TASK_FIELD_KEYS: ClassVar[set[str]] = set(Task.model_fields.keys())
+
     # Pydantic model fields
     service: ServiceType
     integration_type: Literal["optimized", "aws-sdk"] = "optimized"
-    integration_pattern: Literal[None, "runTask", "waitForTaskToken"] = None
+    integration_pattern: Optional[Literal["runTask", "waitForTaskToken"]] = None
     action: Enum
 
-    def __init__(self, **data):
+    def __init__(self, **data: Any) -> None:
+        """Initialize the Service with the given configuration."""
         super().__init__(**data)
-        self.resource = self.set_resource()
-        self.parameters = self.set_parameters()
+        self.resource = self._build_resource()
+        self.parameters = self._build_parameters()
 
-    def set_resource(self) -> str:
+    def _build_resource(self) -> str:
         """
-        Constructs the AWS resource ARN based on service configuration.
+        Construct the AWS resource ARN based on service configuration.
 
         Returns:
             str: The complete AWS resource ARN
         """
         base_prefix = "arn:aws:states:::"
-        prefix = (
-            f"{base_prefix}aws-sdk:"
-            if self.integration_type == "aws-sdk"
-            else base_prefix
+        is_sdk = self.integration_type == "aws-sdk"
+
+        service_name = (
+            INTEGRATION_SDK_RESOURCES[self.service.value]
+            if is_sdk
+            else self.service.value
         )
-        if self.integration_type == "aws-sdk":
-            service = INTEGRATION_SDK_RESOURCES[self.service.value]
-        else:
-            service = self.service.value
-        resource = f"{prefix}{service}:{self.action.value}"
+
+        resource = f"{base_prefix}{'aws-sdk:' if is_sdk else ''}{service_name}:{self.action.value}"
 
         if self.integration_pattern:
-            suffix = self.INTEGRATION_PATTERNS[self.integration_pattern]
-            resource = f"{resource}.{suffix}"
+            resource = (
+                f"{resource}.{self.INTEGRATION_PATTERNS[self.integration_pattern]}"
+            )
 
         return resource
 
-    def set_parameters(self) -> dict:
+    def _build_parameters(self) -> dict:
         """
-        Builds the parameters dictionary for the service configuration.
+        Build the parameters dictionary for the service configuration.
 
         Returns:
             dict: Parameters formatted in PascalCase with properly transformed values
         """
 
-        def transform_value(value: Any) -> Any:
+        def _transform_value(value: Any) -> Any:
             if isinstance(value, CommonObject):
                 return value.to_dict()
             if isinstance(value, list) and value and isinstance(value[0], CommonObject):
                 return [item.to_dict() for item in value]
-
             return value
 
-        service_fields = set(Service.model_fields.keys())
+        def _process_parameter(name: str, value: Any) -> tuple[str, Any]:
+            if isinstance(value, (str, JSONPath)):
+                if isinstance(value, str) and value.startswith("$."):
+                    return self.to_pascalcase(f"{name}.$"), value
+                if isinstance(value, JSONPath):
+                    return self.to_pascalcase(f"{name}.$"), value.get_path()
+            return self.to_pascalcase(name), replace_keys_with_prefix(
+                _transform_value(value)
+            )
+
+        service_fields = set(self.model_fields.keys()) - set(
+            Service.model_fields.keys()
+        )
         return {
-            self.to_pascalcase(param): transform_value(getattr(self, param))
-            for param in (set(self.model_fields.keys()) - service_fields)
-            if getattr(self, param) is not None
+            key: value
+            for field in service_fields
+            if (field_value := getattr(self, field)) is not None
+            for key, value in [_process_parameter(field, field_value)]
         }
 
     @model_validator(mode="after")
     def validate_integration_pattern(self) -> "Service":
         """
-        Validates the integration pattern compatibility with the service and integration type.
+        Validate the integration pattern compatibility with the service and integration type.
 
         Raises:
             ValueError: If the integration pattern is not supported
@@ -108,48 +131,42 @@ class Service(Task):
             return self
 
         if self.integration_type == "optimized":
-            self._validate_optimized_integration()
-        elif self.integration_type == "aws-sdk":
-            self._validate_aws_sdk_integration()
-
-        return self
-
-    def _validate_optimized_integration(self) -> None:
-        """Validates integration pattern for optimized integration type."""
-        if self.integration_pattern not in INTEGRATION_PATTERN_SUPPORT[self.service]:
-            raise ValueError(
-                f"{self.PATTERN_MESSAGES[self.integration_pattern]} is not "
-                f"supported for {self.service.name}."
-            )
-
-    def _validate_aws_sdk_integration(self) -> None:
-        """Validates integration pattern for AWS SDK integration type."""
-        if self.integration_pattern == "runTask":
+            if (
+                self.integration_pattern
+                not in INTEGRATION_PATTERN_SUPPORT[self.service]
+            ):
+                raise ValueError(
+                    f"{self.PATTERN_MESSAGES[self.integration_pattern]} is not "
+                    f"supported for {self.service.name}."
+                )
+        elif self.integration_pattern == "runTask":
             raise ValueError(
                 f"{self.PATTERN_MESSAGES[self.integration_pattern]} is not "
                 "supported for AWS SDK integration."
             )
 
+        return self
+
     def model_dump(
         self,
         *,
         mode: str = "python",
-        include: Any = None,
-        exclude: Any = None,
+        include: Optional[Any] = None,
+        exclude: Optional[Any] = None,
         by_alias: bool = False,
         exclude_unset: bool = False,
         exclude_defaults: bool = False,
         exclude_none: bool = False,
         round_trip: bool = False,
         warnings: bool = True,
-    ) -> dict[str, Any]:
+    ) -> Dict[str, Any]:
         """
         Override model_dump to only include fields from parent Task class.
 
         Returns:
-            dict[str, Any]: Dictionary containing only the parent Task fields
+            Dict[str, Any]: Dictionary containing only the parent Task fields
         """
-        parent_fields = set(Task.model_fields.keys()) | {"next", "end"}
+        parent_fields = self.TASK_FIELD_KEYS | {"next", "end"}
 
         return super().model_dump(
             mode=mode,

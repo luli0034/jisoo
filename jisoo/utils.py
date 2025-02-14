@@ -17,3 +17,19 @@ def dynamodb_item_deserialize(dynamodb_response: dict):
     return {
         key: deseializer.deserialize(value) for key, value in dynamodb_response.items()
     }
+
+
+def replace_keys_with_prefix(d) -> dict:
+    if not isinstance(d, dict):
+        return d
+
+    new_dict = {}
+    for key, value in d.items():
+        new_key = (
+            key + ".$" if isinstance(value, str) and value.startswith("$.") else key
+        )
+        new_dict[new_key] = (
+            replace_keys_with_prefix(value) if isinstance(value, dict) else value
+        )
+
+    return new_dict

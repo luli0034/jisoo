@@ -15,7 +15,9 @@ def create_order_processing_workflow():
     # Define a Pass state to simulate order processing
     def create_order_processing_task():
         return DynamoDBGetItemStep(
-            id="ProcessOrder", table_name="Orders", key={"foo": {"S": "bar"}}
+            id="ProcessOrder",
+            table_name="Orders",
+            key={"foo": {"S": "$.bar"}},
         )
 
     def create_error_handler():

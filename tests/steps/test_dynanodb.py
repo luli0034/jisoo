@@ -9,7 +9,7 @@ from jisoo.steps import (
     DynamoDBQueryStep,
     DynamoDBScanStep,
 )
-from jisoo.models.common import ServiceType
+from jisoo.models.input import StepInput
 import pytest
 from pydantic import ValidationError
 
@@ -23,7 +23,7 @@ def test_dynamodb_get_item_step():
         key={"key": {"key": "value"}},
         consistent_read=True,
         return_consumed_capacity="TOTAL",
-        projection_expression="example",
+        projection_expression="$.input_key",
         expression_attribute_names={"key": "value"},
     )
     step_dict = get_item_step.to_dict()
@@ -34,7 +34,7 @@ def test_dynamodb_get_item_step():
     assert step_dict["Parameters"]["Key"] == {"key": {"key": "value"}}
     assert step_dict["Parameters"]["ConsistentRead"] == True
     assert step_dict["Parameters"]["ReturnConsumedCapacity"] == "TOTAL"
-    assert step_dict["Parameters"]["ProjectionExpression"] == "example"
+    assert step_dict["Parameters"]["ProjectionExpression.$"] == "$.input_key"
     assert step_dict["Parameters"]["ExpressionAttributeNames"] == {"key": "value"}
 
     with pytest.raises(ValidationError):
