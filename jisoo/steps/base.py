@@ -98,10 +98,11 @@ class Service(Task):
 
         def _process_parameter(name: str, value: Any) -> tuple[str, Any]:
             if isinstance(value, (str, JSONPath)):
+                key = name if name.endswith(".$") else f"{name}.$"
                 if isinstance(value, str) and value.startswith("$."):
-                    return self.to_pascalcase(f"{name}.$"), value
+                    return self.to_pascalcase(key), value
                 if isinstance(value, JSONPath):
-                    return self.to_pascalcase(f"{name}.$"), value.get_path()
+                    return self.to_pascalcase(key), value.get_path()
             return self.to_pascalcase(name), replace_keys_with_prefix(
                 _transform_value(value)
             )

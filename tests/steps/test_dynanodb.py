@@ -20,18 +20,20 @@ def test_dynamodb_get_item_step():
         id="example",
         table_name="example",
         integration_type="aws-sdk",
-        key={"key": {"key": "value"}},
+        key={"sort_key": {"foo": "$.bar", "foo2.$": "$.bar2", "foo3": "bar3"}},
         consistent_read=True,
         return_consumed_capacity="TOTAL",
         projection_expression="$.input_key",
         expression_attribute_names={"key": "value"},
     )
     step_dict = get_item_step.to_dict()
-
+    print(step_dict["Parameters"])
     assert step_dict["Type"] == "Task"
     assert step_dict["Resource"] == "arn:aws:states:::aws-sdk:dynamodb:getItem"
     assert step_dict["Parameters"]["TableName"] == "example"
-    assert step_dict["Parameters"]["Key"] == {"key": {"key": "value"}}
+    assert step_dict["Parameters"]["Key"]["sort_key"]["foo.$"] == "$.bar"
+    assert step_dict["Parameters"]["Key"]["sort_key"]["foo2.$"] == "$.bar2"
+    assert step_dict["Parameters"]["Key"]["sort_key"]["foo3"] == "bar3"
     assert step_dict["Parameters"]["ConsistentRead"] == True
     assert step_dict["Parameters"]["ReturnConsumedCapacity"] == "TOTAL"
     assert step_dict["Parameters"]["ProjectionExpression.$"] == "$.input_key"

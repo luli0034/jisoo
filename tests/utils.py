@@ -27,3 +27,7 @@ def test_replace_keys_with_prefix():
     data = {"foo": "$.bar"}
     transformed_data = replace_keys_with_prefix(data)
     assert transformed_data == {"foo.$": "$.bar"}
+
+    data = {"foo.$": "$.bar"}
+    transformed_data = replace_keys_with_prefix(data)
+    assert transformed_data == {"foo.$": "$.bar"}
