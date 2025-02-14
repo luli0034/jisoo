@@ -92,6 +92,7 @@ class Service(Task):
         service_fields = set(self.model_fields.keys()) - set(
             Service.model_fields.keys()
         )
+
         return {
             key: value
             for field in service_fields

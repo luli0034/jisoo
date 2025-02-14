@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field, ConfigDict
 from typing import Literal, Any
 from jisoo.models.input import JSONPath
-from jisoo.utils import replace_keys_with_prefix, process_context
+from jisoo.utils import to_pascalcase, process_context
 from enum import Enum
 
 
@@ -10,16 +10,10 @@ class CommonObject(BaseModel):
 
     def to_dict(self):
         return {
-            k: v
-            for k, v in (
-                process_context(k, v)
-                for k, v in self.model_dump().items()
-                if v is not None
-            )
+            to_pascalcase(k): getattr(self, k)
+            for k in self.model_fields
+            if getattr(self, k) is not None
         }
-
-    def to_pascalcase(self, text):
-        return "".join([t.title() for t in text.split("_")])
 
 
 class KeyValuePair(CommonObject):

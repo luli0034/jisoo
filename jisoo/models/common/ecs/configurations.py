@@ -22,13 +22,3 @@ class AwsVpcConfiguration(CommonObject):
 
 class NetworkConfiguration(CommonObject):
     awsvpc_configuration: AwsVpcConfiguration | dict
-
-    @field_validator("awsvpc_configuration", mode="after")
-    @classmethod
-    def get_configuration(cls, v: AwsVpcConfiguration):
-        if not isinstance(v, AwsVpcConfiguration):
-            raise TypeError(
-                "awsvpc_configuration must be an instance of AwsVpcConfiguration."
-            )
-
-        return v.to_dict()
