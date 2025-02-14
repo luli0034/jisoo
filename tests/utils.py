@@ -42,8 +42,15 @@ def test_replace_keys_with_prefix():
 
     data = {"foo.$": "States.JsonToString($.bar)"}
     transformed_data = replace_keys_with_prefix(data)
-    print
     assert transformed_data == {"foo.$": "States.JsonToString($.bar)"}
+
+    data = {"foo": "$$.Task.Token"}
+    transformed_data = replace_keys_with_prefix(data)
+    assert transformed_data == {"foo.$": "$$.Task.Token"}
+
+    data = {"foo": "$"}
+    transformed_data = replace_keys_with_prefix(data)
+    assert transformed_data == {"foo.$": "$"}
 
 
 def test_process_context():

@@ -31,7 +31,7 @@ def replace_keys_with_prefix(d) -> dict:
             if (
                 isinstance(value, str)
                 and (
-                    value.startswith("$.")
+                    value.startswith("$")
                     # TODO: workaround for the intrinsic functions
                     or value.startswith("States.")
                 )
