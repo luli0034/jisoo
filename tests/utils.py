@@ -1,4 +1,8 @@
-from jisoo.utils import dynamodb_item_deserialize, replace_keys_with_prefix
+from jisoo.utils import (
+    dynamodb_item_deserialize,
+    replace_keys_with_prefix,
+    process_context,
+)
 from decimal import Decimal
 
 
@@ -31,3 +35,37 @@ def test_replace_keys_with_prefix():
     data = {"foo.$": "$.bar"}
     transformed_data = replace_keys_with_prefix(data)
     assert transformed_data == {"foo.$": "$.bar"}
+
+    data = {"foo": "States.JsonToString($.bar)"}
+    transformed_data = replace_keys_with_prefix(data)
+    assert transformed_data == {"foo.$": "States.JsonToString($.bar)"}
+
+    data = {"foo.$": "States.JsonToString($.bar)"}
+    transformed_data = replace_keys_with_prefix(data)
+    print
+    assert transformed_data == {"foo.$": "States.JsonToString($.bar)"}
+
+
+def test_process_context():
+    from jisoo.models.common import KeyValuePair
+
+    data = {"foo": KeyValuePair(name="foo", value="bar")}
+    key, transformed_data = process_context("key", data)
+    assert transformed_data == {"foo": {"Name": "foo", "Value": "bar"}}
+
+    data = {
+        "foo": [
+            KeyValuePair(name="foo", value="bar"),
+            KeyValuePair(name="foo", value="$.bar"),
+            KeyValuePair(name="$.foo", value="$.bar"),
+        ]
+    }
+    key, transformed_data = process_context("key", data)
+    print(transformed_data)
+    assert transformed_data == {
+        "foo": [
+            {"Name": "foo", "Value": "bar"},
+            {"Name": "foo", "Value.$": "$.bar"},
+            {"Name.$": "$.foo", "Value.$": "$.bar"},
+        ]
+    }

@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field, ConfigDict
-from typing import Literal
+from typing import Literal, Any
 from jisoo.models.input import JSONPath
+from jisoo.utils import replace_keys_with_prefix, process_context
 from enum import Enum
 
 
@@ -8,14 +9,14 @@ class CommonObject(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     def to_dict(self):
-        res = {}
-        for k, v in self.model_dump().items():
-            if v is not None:
-                if isinstance(v, JSONPath):
-                    k = k + ".$"
-                    v = v.get_path()
-                res[self.to_pascalcase(k)] = v
-        return res
+        return {
+            k: v
+            for k, v in (
+                process_context(k, v)
+                for k, v in self.model_dump().items()
+                if v is not None
+            )
+        }
 
     def to_pascalcase(self, text):
         return "".join([t.title() for t in text.split("_")])

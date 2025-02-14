@@ -50,7 +50,6 @@ def test_graph_with_state():
     graph = Graph(branch=first_state, comment="Single State Graph", timeout_seconds=60)
 
     graph_dict = graph.to_dict()
-    print(graph.definition)
     assert graph_dict["Comment"] == "Single State Graph"
     assert graph_dict["TimeoutSeconds"] == 60
     assert graph_dict["StartAt"] == "PassState1"
