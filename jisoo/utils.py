@@ -27,9 +27,15 @@ def replace_keys_with_prefix(d) -> dict:
     for key, value in d.items():
         new_key = (
             key + ".$"
-            if isinstance(value, str)
-            and value.startswith("$.")
-            and not key.endswith(".$")
+            if (
+                isinstance(value, str)
+                and (
+                    value.startswith("$.")
+                    # TODO: workaround for the intrinsic functions
+                    or value.startswith("States.")
+                )
+                and not key.endswith(".$")
+            )
             else key
         )
         new_dict[new_key] = (
