@@ -18,39 +18,27 @@ def test_dynamodb_item_deserialize():
 
 def test_replace_keys_with_prefix():
     # Example usage
-    data = {"foo": {"key": "$.value", "bar": {"key2": "$.value2"}}}
-    transformed_data = replace_keys_with_prefix(data)
-    assert transformed_data == {
-        "foo": {"key.$": "$.value", "bar": {"key2.$": "$.value2"}}
-    }
+   
 
-    data = {"foo": "bar"}
-    transformed_data = replace_keys_with_prefix(data)
-    assert transformed_data == {"foo": "bar"}
+    transformed_data = replace_keys_with_prefix(key="foo", value="bar")
+    assert transformed_data == ('foo', 'bar')
+    transformed_data = replace_keys_with_prefix(key="foo", value="$.bar")
+    assert transformed_data == ("foo.$", "$.bar")
 
-    data = {"foo": "$.bar"}
-    transformed_data = replace_keys_with_prefix(data)
-    assert transformed_data == {"foo.$": "$.bar"}
+    transformed_data = replace_keys_with_prefix("foo.$", "$.bar")
+    assert transformed_data == ("foo.$", "$.bar")
 
-    data = {"foo.$": "$.bar"}
-    transformed_data = replace_keys_with_prefix(data)
-    assert transformed_data == {"foo.$": "$.bar"}
+    transformed_data = replace_keys_with_prefix("foo", "States.JsonToString($.bar)")
+    assert transformed_data == ("foo.$", "States.JsonToString($.bar)")
 
-    data = {"foo": "States.JsonToString($.bar)"}
-    transformed_data = replace_keys_with_prefix(data)
-    assert transformed_data == {"foo.$": "States.JsonToString($.bar)"}
+    transformed_data = replace_keys_with_prefix("foo.$", "States.JsonToString($.bar)")
+    assert transformed_data == ("foo.$", "States.JsonToString($.bar)")
 
-    data = {"foo.$": "States.JsonToString($.bar)"}
-    transformed_data = replace_keys_with_prefix(data)
-    assert transformed_data == {"foo.$": "States.JsonToString($.bar)"}
+    transformed_data = replace_keys_with_prefix("foo", "$$.Task.Token")
+    assert transformed_data == ("foo.$", "$$.Task.Token")
 
-    data = {"foo": "$$.Task.Token"}
-    transformed_data = replace_keys_with_prefix(data)
-    assert transformed_data == {"foo.$": "$$.Task.Token"}
-
-    data = {"foo": "$"}
-    transformed_data = replace_keys_with_prefix(data)
-    assert transformed_data == {"foo.$": "$"}
+    transformed_data = replace_keys_with_prefix("foo", "$")
+    assert transformed_data == ("foo.$", "$")
 
 
 def test_process_context():

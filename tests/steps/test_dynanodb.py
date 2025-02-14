@@ -27,6 +27,7 @@ def test_dynamodb_get_item_step():
         expression_attribute_names={"key": "value"},
     )
     step_dict = get_item_step.to_dict()
+    print(step_dict)
     assert step_dict["Type"] == "Task"
     assert step_dict["Resource"] == "arn:aws:states:::aws-sdk:dynamodb:getItem"
     assert step_dict["Parameters"]["TableName"] == "example"

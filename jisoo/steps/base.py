@@ -10,7 +10,7 @@ from jisoo.models.common import (
     INTEGRATION_SDK_RESOURCES,
     JSONPath,
 )
-from jisoo.utils import replace_keys_with_prefix, process_context
+from jisoo.utils import to_pascalcase, process_context
 
 T = TypeVar("T", bound="CommonObject")
 
@@ -92,9 +92,10 @@ class Service(Task):
         service_fields = set(self.model_fields.keys()) - set(
             Service.model_fields.keys()
         )
+ 
 
         return {
-            key: value
+            to_pascalcase(key): value
             for field in service_fields
             if (field_value := getattr(self, field)) is not None
             for key, value in [process_context(field, field_value)]
