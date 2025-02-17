@@ -18,10 +18,9 @@ def test_dynamodb_item_deserialize():
 
 def test_replace_keys_with_prefix():
     # Example usage
-   
 
     transformed_data = replace_keys_with_prefix(key="foo", value="bar")
-    assert transformed_data == ('foo', 'bar')
+    assert transformed_data == ("foo", "bar")
     transformed_data = replace_keys_with_prefix(key="foo", value="$.bar")
     assert transformed_data == ("foo.$", "$.bar")
 
@@ -56,11 +55,17 @@ def test_process_context():
         ]
     }
     key, transformed_data = process_context("key", data)
-    print(transformed_data)
+
     assert transformed_data == {
         "foo": [
             {"Name": "foo", "Value": "bar"},
             {"Name": "foo", "Value.$": "$.bar"},
             {"Name.$": "$.foo", "Value.$": "$.bar"},
         ]
+    }
+
+    data = {"foo": {"key": "$.VALUE", "key2": "States.JsonToString($.VALUE2)"}}
+    key, transformed_data = process_context("key", data)
+    assert transformed_data == {
+        "foo": {"key.$": "$.VALUE", "key2.$": "States.JsonToString($.VALUE2)"}
     }

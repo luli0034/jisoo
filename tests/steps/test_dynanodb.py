@@ -25,11 +25,13 @@ def test_dynamodb_get_item_step():
         return_consumed_capacity="TOTAL",
         projection_expression="$.input_key",
         expression_attribute_names={"key": "value"},
+        result_selector={"foo": "$.bar"},
     )
     step_dict = get_item_step.to_dict()
     print(step_dict)
     assert step_dict["Type"] == "Task"
     assert step_dict["Resource"] == "arn:aws:states:::aws-sdk:dynamodb:getItem"
+    assert step_dict["ResultSelector"]["foo.$"] == "$.bar"
     assert step_dict["Parameters"]["TableName"] == "example"
     assert step_dict["Parameters"]["Key"]["sort_key"]["foo.$"] == "$.bar"
     assert step_dict["Parameters"]["Key"]["sort_key"]["foo2.$"] == "$.bar2"
