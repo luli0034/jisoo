@@ -7,28 +7,102 @@ from jisoo.models.common.ecs import (
     NetworkConfiguration,
     AwsVpcConfiguration,
 )
-from jisoo.models.state import Chain, Map, Graph
+from jisoo.models.state import Chain, Map, Graph, Choice, ChoiceRule, Succeed
+from jisoo.models.rule import Condition
 from jisoo.steps.ecs import ECSRunTaskStep
 from jisoo.steps.sqs import SQSDeleteMessageStep
+from jisoo.steps.dynamodb import DynamoDBUpdateItemStep
 from jisoo.models.input import StepInput
 from jisoo.models.common import KeyValuePair
 from jisoo.utils import to_pascalcase
 
-delete_message = SQSDeleteMessageStep(
-    id="DeleteMessageFromSQS",
-    integration_type="aws-sdk",
-    queue_url="SQS_SOURCE_QUEUE_URL",
-    receipt_handle="$.receipt_handle",
-    result_path=None,
+
+def create_update_ddb_step() -> Map:
+    update_ddb_input = StepInput(
+        schema={
+            "Environments.CONSUMER_OUTPUT_KEY_DATASET_ID": str,
+            "Environments.CONSUMER_OUTPUT_KEY_OBJECT_KEY": str,
+        }
+    )
+    update_ddb_success = Succeed(id="Success")
+    update_fail = DynamoDBUpdateItemStep(
+        id="UpdateFail",
+        table_name="Environments.STATUS_TABLE_NAME",
+        key={
+            "Environments.STATUS_TABLE_PARTITION_KEY": {
+                "S": update_ddb_input.get(
+                    "Environments.CONSUMER_OUTPUT_KEY_DATASET_ID"
+                ).get_path()
+            },
+            "Environments.STATUS_TABLE_SORT_KEY": {
+                "S": update_ddb_input.get(
+                    "Environments.CONSUMER_OUTPUT_KEY_OBJECT_KEY"
+                ).get_path()
+            },
+        },
+        update_expression="SET #status = :value",
+        expression_attribute_names={"#status": "status"},
+        expression_attribute_values={":value": {"S": "FAIL"}},
+        result_path=None,
+    )
+
+    update_success = DynamoDBUpdateItemStep(
+        id="UpdateSuccess",
+        table_name="Environments.STATUS_TABLE_NAME",
+        key={
+            "Environments.STATUS_TABLE_PARTITION_KEY": {
+                "S": update_ddb_input.get(
+                    "Environments.CONSUMER_OUTPUT_KEY_DATASET_ID"
+                ).get_path()
+            },
+            "Environments.STATUS_TABLE_SORT_KEY": {
+                "S": update_ddb_input.get(
+                    "Environments.CONSUMER_OUTPUT_KEY_OBJECT_KEY"
+                ).get_path()
+            },
+        },
+        update_expression="SET #status = :value",
+        expression_attribute_names={"#status": "status"},
+        expression_attribute_values={":value": {"S": "SUCCESS"}},
+        result_path=None,
+    )
+
+    is_task_failed = Choice(
+        id="Choice",
+        choices=[
+            ChoiceRule(
+                rule=Condition.Not(Condition.NumericEquals("$.status", 0)),
+                next=Chain(steps=[update_fail, update_ddb_success]),
+            )
+        ],
+    )
+
+    return Map(
+        id="MapUpdateDDB",
+        input_path=f"$.TaskResult",
+        item_processor=Chain(
+            steps=[
+                is_task_failed,
+                update_success,
+                update_ddb_success,
+            ],
+        ),  # Define the states within the Map
+        result_path=None,
+    )
+
+
+main = Map(
+    id="Map",
+    items_path=f"$.Environments.CONSUMER_OUTPUT_KEY_ITEMS_KEY",
+    max_concurrency=2,
+    item_processor=Chain(
+        steps=[
+            create_update_ddb_step(),
+        ]
+    ),
 )
-si = StepInput(schema={"record": str})
-map_delete_message = Map(
-    id="MapDeleteMessages",
-    input_path=si.get("record").get_path(),
-    item_processor=Chain(steps=[delete_message]),  # Define the states within the Map
-    result_path=None,
-)
-g = Graph(branch=map_delete_message)
+
+g = Graph(branch=main)
 print(g.definition)
 # data = {"foo": KeyValuePair(name="foo", value="bar")}
 # print(process_context("key", data))

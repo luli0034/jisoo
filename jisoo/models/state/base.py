@@ -43,7 +43,7 @@ class Block(BaseModel):
         for k, v in self.model_dump().items():
             if v is None or k.lower() == "id":
                 continue
-            elif isinstance(v, dict):
+            elif isinstance(v, dict) and k.lower() == "result_selector":
                 _, _v = process_context(k, v)
                 res[self.to_pascalcase(k)] = _v
             else:
