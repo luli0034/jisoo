@@ -7,13 +7,29 @@ from jisoo.models.common.ecs import (
     NetworkConfiguration,
     AwsVpcConfiguration,
 )
+from jisoo.models.state import Chain, Map, Graph
 from jisoo.steps.ecs import ECSRunTaskStep
-from jisoo.steps.dynamodb import DynamoDBGetItemStep
-
+from jisoo.steps.sqs import SQSDeleteMessageStep
+from jisoo.models.input import StepInput
 from jisoo.models.common import KeyValuePair
 from jisoo.utils import to_pascalcase
 
-print(to_pascalcase("projection_expression.$"))
+delete_message = SQSDeleteMessageStep(
+    id="DeleteMessageFromSQS",
+    integration_type="aws-sdk",
+    queue_url="SQS_SOURCE_QUEUE_URL",
+    receipt_handle="$.receipt_handle",
+    result_path=None,
+)
+si = StepInput(schema={"record": str})
+map_delete_message = Map(
+    id="MapDeleteMessages",
+    input_path=si.get("record").get_path(),
+    item_processor=Chain(steps=[delete_message]),  # Define the states within the Map
+    result_path=None,
+)
+g = Graph(branch=map_delete_message)
+print(g.definition)
 # data = {"foo": KeyValuePair(name="foo", value="bar")}
 # print(process_context("key", data))
 
@@ -65,15 +81,15 @@ print(to_pascalcase("projection_expression.$"))
 # step_dict = run_task_step.to_dict()
 # print(step_dict)
 
-get_item_step = DynamoDBGetItemStep(
-    id="example",
-    table_name="example",
-    integration_type="aws-sdk",
-    key={"sort_key": {"foo": "$.bar", "foo2.$": "$.bar2", "foo3": "bar3"}},
-    consistent_read=True,
-    return_consumed_capacity="TOTAL",
-    projection_expression="$.input_key",
-    expression_attribute_names={"key": "value"},
-)
-step_dict = get_item_step.to_dict()
-print(step_dict)
+# get_item_step = DynamoDBGetItemStep(
+#     id="example",
+#     table_name="example",
+#     integration_type="aws-sdk",
+#     key={"sort_key": {"foo": "$.bar", "foo2.$": "$.bar2", "foo3": "bar3"}},
+#     consistent_read=True,
+#     return_consumed_capacity="TOTAL",
+#     projection_expression="$.input_key",
+#     expression_attribute_names={"key": "value"},
+# )
+# step_dict = get_item_step.to_dict()
+# print(step_dict)

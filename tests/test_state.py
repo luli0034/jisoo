@@ -116,6 +116,7 @@ def test_map():
     )
 
     state_dict = map_state.to_dict()
+
     assert state_dict["Type"] == "Map"
     assert state_dict["InputPath"] == "$.input"
     assert state_dict["OutputPath"] == "$.output"

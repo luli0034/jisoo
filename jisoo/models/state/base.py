@@ -44,8 +44,8 @@ class Block(BaseModel):
             if v is None or k.lower() == "id":
                 continue
             elif isinstance(v, dict):
-                _k, _v = process_context(k, v)
-                res[self.to_pascalcase(_k)] = _v
+                _, _v = process_context(k, v)
+                res[self.to_pascalcase(k)] = _v
             else:
                 res[self.to_pascalcase(k)] = v
 
