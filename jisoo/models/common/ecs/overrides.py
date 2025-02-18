@@ -37,25 +37,6 @@ class ContainerOverride(CommonObject):
         None, description="The type and amount of a resource to assign to a container."
     )
 
-    @model_validator(mode="after")
-    def set_to_dict(self):
-        if self.environment_files:
-            self.environment_files = [
-                i.to_dict() if isinstance(i, CommonObject) else i
-                for i in self.environment_files
-            ]
-        if self.environment:
-            self.environment = [
-                i.to_dict() if isinstance(i, CommonObject) else i
-                for i in self.environment
-            ]
-        if self.resource_requirements:
-            self.resource_requirements = [
-                i.to_dict() if isinstance(i, CommonObject) else i
-                for i in self.resource_requirements
-            ]
-        return self
-
 
 class TaskOverride(CommonObject):
     container_overrides: Optional[List[ContainerOverride]] | Optional[List[Dict]] = None
@@ -65,11 +46,3 @@ class TaskOverride(CommonObject):
     inference_accelerator_overrides: Optional[List[Dict]] = None
     memory: Optional[str] = None
     task_role_arn: Optional[str] = None
-
-    @model_validator(mode="after")
-    def set_to_dict(self):
-        self.container_overrides = [
-            i.to_dict() if isinstance(i, CommonObject) else i
-            for i in self.container_overrides
-        ]
-        return self

@@ -1,5 +1,6 @@
 import json
-from typing import Optional, List
+from typing import Optional, List, Dict
+from jisoo.utils import process_context
 from enum import Enum
 from pydantic import (
     BaseModel,
@@ -38,12 +39,17 @@ class Block(BaseModel):
         Returns:
             dict: A dictionary representation of the model with processed values
         """
+        res = {}
+        for k, v in self.model_dump().items():
+            if v is None or k.lower() == "id":
+                continue
+            elif isinstance(v, dict) and k.lower() == "result_selector":
+                _, _v = process_context(k, v)
+                res[self.to_pascalcase(k)] = _v
+            else:
+                res[self.to_pascalcase(k)] = v
 
-        return {
-            self.to_pascalcase(k): (v)
-            for k, v in self.model_dump().items()
-            if v is not None and k.lower() != "id"
-        }
+        return res
 
     def to_json(self, pretty=False):
         """

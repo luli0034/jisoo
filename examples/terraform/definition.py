@@ -32,8 +32,8 @@ def create_lambda_step() -> LambdaInvokeStep:
         integration_pattern="waitForTaskToken",
         integration_type="optimized",
         payload={
-            "TASK_TOKEN.$": "$$.Task.Token",
-            "FOO.$": lambda_input.get("foo").get_path(),
+            "TASK_TOKEN": "$$.Task.Token",
+            "FOO": lambda_input.get("foo").get_path(),
         },
     )
     return lambda_invoke
@@ -49,14 +49,14 @@ def create_ecs_run_task_step() -> ECSRunTaskStep:
         id="example",
         integration_pattern="waitForTaskToken",
         launch_type="FARGATE",
-        cluster=tfvars.get_variable("ECS_CLUSTER_BATCH_INGESTION"),
-        task_definition=tfvars.get_variable("ECS_TASK_DEFINITION_BATCH_INGESTION"),
+        cluster=tfvars.get("ECS_CLUSTER_BATCH_INGESTION"),
+        task_definition=tfvars.get("ECS_TASK_DEFINITION_BATCH_INGESTION"),
         network_configuration=NetworkConfiguration(
             awsvpc_configuration=AwsVpcConfiguration(
                 subnets=[
-                    tfvars.get_variable("TASK_PRIVATE_SUBNET_1"),
-                    tfvars.get_variable("TASK_PRIVATE_SUBNET_2"),
-                    tfvars.get_variable("TASK_PRIVATE_SUBNET_3"),
+                    tfvars.get("TASK_PRIVATE_SUBNET_1"),
+                    tfvars.get("TASK_PRIVATE_SUBNET_2"),
+                    tfvars.get("TASK_PRIVATE_SUBNET_3"),
                 ],
                 assign_public_ip="DISABLE",
             )
@@ -64,13 +64,11 @@ def create_ecs_run_task_step() -> ECSRunTaskStep:
         overrides=TaskOverride(
             container_overrides=[
                 ContainerOverride(
-                    name=tfvars.get_variable("ECS_TASK_NAME"),
+                    name=tfvars.get("ECS_TASK_NAME"),
                     environment=[
                         KeyValuePair(
                             name="OBJECTS",
-                            value=run_task_input.get(
-                                tfvars.get("CONSUMER_OUTPUT_KEY_ITEMS_KEY")
-                            ),
+                            value=tfvars.get_variable("CONSUMER_OUTPUT_KEY_ITEMS_KEY"),
                         ),
                         KeyValuePair(
                             name="TASK_TOKEN",

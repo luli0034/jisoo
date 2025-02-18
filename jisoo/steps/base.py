@@ -10,7 +10,7 @@ from jisoo.models.common import (
     INTEGRATION_SDK_RESOURCES,
     JSONPath,
 )
-from jisoo.utils import replace_keys_with_prefix
+from jisoo.utils import to_pascalcase, process_context
 
 T = TypeVar("T", bound="CommonObject")
 
@@ -89,31 +89,16 @@ class Service(Task):
             dict: Parameters formatted in PascalCase with properly transformed values
         """
 
-        def _transform_value(value: Any) -> Any:
-            if isinstance(value, CommonObject):
-                return value.to_dict()
-            if isinstance(value, list) and value and isinstance(value[0], CommonObject):
-                return [item.to_dict() for item in value]
-            return value
-
-        def _process_parameter(name: str, value: Any) -> tuple[str, Any]:
-            if isinstance(value, (str, JSONPath)):
-                if isinstance(value, str) and value.startswith("$."):
-                    return self.to_pascalcase(f"{name}.$"), value
-                if isinstance(value, JSONPath):
-                    return self.to_pascalcase(f"{name}.$"), value.get_path()
-            return self.to_pascalcase(name), replace_keys_with_prefix(
-                _transform_value(value)
-            )
-
         service_fields = set(self.model_fields.keys()) - set(
             Service.model_fields.keys()
         )
+ 
+
         return {
-            key: value
+            to_pascalcase(key): value
             for field in service_fields
             if (field_value := getattr(self, field)) is not None
-            for key, value in [_process_parameter(field, field_value)]
+            for key, value in [process_context(field, field_value)]
         }
 
     @model_validator(mode="after")

@@ -31,13 +31,12 @@
                         "Type": "Task",
                         "ResultPath": "$.TaskResult",
                         "Parameters": {
-                            "TaskDefinition": "$.${ECS_TASK_DEFINITION_BATCH_INGESTION}",
                             "NetworkConfiguration": {
                                 "AwsvpcConfiguration": {
                                     "Subnets": [
-                                        "$.${TASK_PRIVATE_SUBNET_1}",
-                                        "$.${TASK_PRIVATE_SUBNET_2}",
-                                        "$.${TASK_PRIVATE_SUBNET_3}"
+                                        "${TASK_PRIVATE_SUBNET_1}",
+                                        "${TASK_PRIVATE_SUBNET_2}",
+                                        "${TASK_PRIVATE_SUBNET_3}"
                                     ],
                                     "AssignPublicIp": "DISABLE"
                                 }
@@ -45,7 +44,7 @@
                             "Overrides": {
                                 "ContainerOverrides": [
                                     {
-                                        "Name": "$.${ECS_TASK_NAME}",
+                                        "Name": "${ECS_TASK_NAME}",
                                         "Environment": [
                                             {
                                                 "Name": "OBJECTS",
@@ -59,8 +58,9 @@
                                     }
                                 ]
                             },
-                            "Cluster": "$.${ECS_CLUSTER_BATCH_INGESTION}",
-                            "LaunchType": "FARGATE"
+                            "Cluster": "${ECS_CLUSTER_BATCH_INGESTION}",
+                            "LaunchType": "FARGATE",
+                            "TaskDefinition": "${ECS_TASK_DEFINITION_BATCH_INGESTION}"
                         },
                         "Resource": "arn:aws:states:::ecs:runTask.waitForTaskToken",
                         "Next": "run_ecs_success"
