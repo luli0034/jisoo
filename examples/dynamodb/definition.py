@@ -54,8 +54,8 @@ def create_lambda_step() -> LambdaInvokeStep:
         integration_pattern="waitForTaskToken",
         integration_type="optimized",
         payload={
-            "TASK_TOKEN.$": "$$.Task.Token",
-            "FOO.$": lambda_input.get("foo").get_path(),
+            "TASK_TOKEN": "$$.Task.Token",
+            "FOO": lambda_input.get("foo").get_path(),
         },
     )
     return lambda_invoke

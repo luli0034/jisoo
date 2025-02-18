@@ -2,20 +2,78 @@
 
 Jisoo is a Python-based tool for managing AWS Step Functions. It uses Pydantic to ensure valid definitions and integrates with Terraform for a smoother CI/CD workflow. By adopting a configuration-as-code approach, Jisoo simplifies definition management, eliminating the need for lengthy JSON files or manual work in the AWS console, making development more efficient and user-friendly.
 
-# Smooth CI/CD with Terraform 
+# Example Usages
 
-1. Run `definition.py` to generate the Step Functions template and the required keys to be populated by Terraform.
-2. Use templatefile in Terraform to load the template and substitute values from Terraform variables.
-3. Deploy the Step Functions state machine to AWS using terraform apply.
+## Smooth CI/CD with Terraform 
+
+This example showcase how to integrate AWS Step Function with terraform for seamless deployment. Ite generate a JSON definition template with placeholders (e.g., `${TO_REPLACE}`) and a corresponding variable list. Users can map there variables and render the final statemachine definition using `templatefile` function. This approach enshires visibility into all required keys, preventing missing configurations.
 
 
-```bash
-python examples/terraform/definition.py
-# will create two files: definition.json tfvars.txt 
-cd examples/terraform
-terraform init
-terraform apply -auto-approve
+```python
+from jisoo.models.input.terraform import TFVariables
+from jisoo.steps import LambdaInvokeStep
+from jisoo.models.state import Graph
+
+tfvars = TFVariables
+tfvars.add_variable("LAMBDA_FUNCTION_NAME")
+
+lambda_invoke = LambdaInvokeStep(
+    function_name=tfvars.get("LAMBDA_FUNCTION_NAME"),
+    id="invoke_lambda_example",
+    integration_pattern="waitForTaskToken",
+    integration_type="optimized",
+    payload={
+        "TASK_TOKEN.$": "$$.Task.Token",
+    }
+)
+
+graph = Graph(branch=lambda_invoke)
+tfvars.dump_keys("TFKEY_PATH")
+with open("DEFINITION_PATH", "w") as f:
+    f.write(graph.definition)
+
 ```
+## Automating Step Functions with DynamoDB Context Injection
+
+This example shows how to dynamically query values from DynamoDB and inject them into a statemachine definition. By leveraging this approach, your workflow always uses the latest contextual without manual updates. Eliminate the need to manage infrastructure changes.
+
+### Table Structure
+### Table Structure
+
+| Attribute  | Type   | Key Type       | Description |
+|------------|--------|---------------|-------------|
+| `resource` | String | Partition Key  | Represents the unique identifier for the resource. |
+| `env`      | String | Sort Key       | Specifies the environment (e.g., `dev`, `staging`, `prod`). |
+| `metadata` | String | Attribute      | Stores additional metadata as a JSON string or plain text. |
+
+
+```python
+from jisoo.table.dynamodb import DynamoDBTable
+from jisoo.steps import LambdaInvokeStep
+from jisoo.models.state import Graph
+
+ddb = DynamoDBTable(
+    table_name=TABLE_NAME,
+    region_name=REGION,
+    hash_key="TEST",
+    attribute_to_get="metadata",
+)
+
+lambda_invoke = LambdaInvokeStep(
+    function_name=ddb.get("LAMBDA_FUNCTION_NAME"),
+    id="invoke_lambda_example",
+    integration_pattern="waitForTaskToken",
+    integration_type="optimized",
+    payload={
+        "TASK_TOKEN.$": "$$.Task.Token",
+    }
+)
+
+graph = Graph(branch=lambda_invoke)
+with open("DEFINITION_PATH", "w") as f:
+    f.write(graph.definition)
+```
+
 # State
 
 ## Parallel

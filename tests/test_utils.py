@@ -52,6 +52,7 @@ def test_process_context():
             KeyValuePair(name="foo", value="bar"),
             KeyValuePair(name="foo", value="$.bar"),
             KeyValuePair(name="$.foo", value="$.bar"),
+            KeyValuePair(name="$.foo", value="$bar"),
         ]
     }
     key, transformed_data = process_context("key", data)
@@ -61,6 +62,7 @@ def test_process_context():
             {"Name": "foo", "Value": "bar"},
             {"Name": "foo", "Value.$": "$.bar"},
             {"Name.$": "$.foo", "Value.$": "$.bar"},
+            {"Name.$": "$.foo", "Value": "$bar"},
         ]
     }
 

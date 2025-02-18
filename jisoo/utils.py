@@ -1,10 +1,10 @@
-
 from typing import Any, Dict
 import re
 
 
 def dynamodb_item_deserialize(dynamodb_response: dict):
     from boto3.dynamodb.types import TypeDeserializer
+
     """
     Converts a DynamoDB response to dict.
 
@@ -31,7 +31,10 @@ def replace_keys_with_prefix(key, value) -> tuple[str, Any]:
             key = key + ".$"
     elif isinstance(value, str) and (
         # TODO: workarounds for intrinsic function
-        value.startswith("$") or value.startswith("States.")
+        value.startswith("$.")
+        or value.startswith("States.")
+        or value.startswith("$$.")
+        or value == "$"
     ):
         if not key.endswith(".$"):
             key = key + ".$"
@@ -45,7 +48,7 @@ def to_pascalcase(text: str) -> str:
 
 def transform_value(
     key: str, value: Any, depth: int = 0, max_depth: int = 100
-)  -> tuple[str, Any]:
+) -> tuple[str, Any]:
     """
     Recursively transform values in nested structures, handling CommonObjects at any depth.
 
