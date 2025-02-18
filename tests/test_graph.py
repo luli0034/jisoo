@@ -50,7 +50,6 @@ def test_graph_with_state():
     graph = Graph(branch=first_state, comment="Single State Graph", timeout_seconds=60)
 
     graph_dict = graph.to_dict()
-    print(graph.definition)
     assert graph_dict["Comment"] == "Single State Graph"
     assert graph_dict["TimeoutSeconds"] == 60
     assert graph_dict["StartAt"] == "PassState1"
@@ -122,3 +121,94 @@ def test_graph_with_error_handle():
     assert graph_dict["States"]["TaskState"]["Catch"][0]["ErrorEquals"] == [
         "States.TaskFailed"
     ]
+
+
+def test_nested_graph():
+
+    update_ddb_success = Succeed(id="Success")
+    update_fail = Fail(id="Fail")
+    is_task_failed = Choice(
+        input_path="$.TaskResult",
+        id="Choice",
+        choices=[
+            ChoiceRule(
+                rule=Condition.Not(Condition.NumericEquals("$.status", 0)),
+                next=Chain(steps=[update_fail, update_ddb_success]),
+            )
+        ],
+    )
+
+    main = Map(
+        id="MapUpdateDDB",
+        input_path=f"$.TaskResult",
+        item_processor=Chain(
+            steps=[
+                is_task_failed,
+                Succeed(id="TaskSuccess"),
+                update_ddb_success,
+            ],
+        ),  # Define the states within the Map
+        result_path=None,
+    )
+
+    main = Map(
+        id="Map",
+        items_path=f"$.items",
+        max_concurrency=2,
+        item_processor=Chain(
+            steps=[
+                main,
+            ]
+        ),
+    )
+
+    graph = Graph(branch=main, comment="Task State Graph", timeout_seconds=60)
+    graph_dict = graph.to_dict()
+    print(graph_dict)
+    assert graph_dict["Comment"] == "Task State Graph"
+    assert graph_dict["TimeoutSeconds"] == 60
+    assert graph_dict["StartAt"] == "Map"
+    assert graph_dict["States"]["Map"]["Type"] == "Map"
+    assert graph_dict["States"]["Map"]["ItemsPath"] == "$.items"
+    assert graph_dict["States"]["Map"]["MaxConcurrency"] == 2
+    assert graph_dict["States"]["Map"]["End"] == True
+    assert (
+        graph_dict["States"]["Map"]["ItemProcessor"]["States"]["MapUpdateDDB"]["Type"]
+        == "Map"
+    )
+    assert (
+        graph_dict["States"]["Map"]["ItemProcessor"]["States"]["MapUpdateDDB"][
+            "InputPath"
+        ]
+        == "$.TaskResult"
+    )
+    assert (
+        graph_dict["States"]["Map"]["ItemProcessor"]["States"]["MapUpdateDDB"][
+            "ItemProcessor"
+        ]["States"]["Choice"]["Type"]
+        == "Choice"
+    )
+    assert (
+        graph_dict["States"]["Map"]["ItemProcessor"]["States"]["MapUpdateDDB"][
+            "ItemProcessor"
+        ]["States"]["Choice"]["InputPath"]
+        == "$.TaskResult"
+    )
+    assert (
+        graph_dict["States"]["Map"]["ItemProcessor"]["States"]["MapUpdateDDB"][
+            "ItemProcessor"
+        ]["States"]["Choice"]["Choices"][0]["Not"]["NumericEquals"]
+        == 0
+    )
+    assert (
+        graph_dict["States"]["Map"]["ItemProcessor"]["States"]["MapUpdateDDB"][
+            "ItemProcessor"
+        ]["States"]["Choice"]["Choices"][0]["Next"]
+        == "Fail"
+    )
+    assert (
+        graph_dict["States"]["Map"]["ItemProcessor"]["States"]["MapUpdateDDB"][
+            "ItemProcessor"
+        ]["States"]["TaskSuccess"]["Type"]
+        == "Succeed"
+    )

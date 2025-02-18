@@ -32,6 +32,7 @@
                         "ResultPath": "$.TaskResult",
                         "Parameters": {
                             "TaskDefinition": "example-ecs-task-definition",
+                            "LaunchType": "FARGATE",
                             "Overrides": {
                                 "ContainerOverrides": [
                                     {
@@ -49,7 +50,6 @@
                                     }
                                 ]
                             },
-                            "LaunchType": "FARGATE",
                             "Cluster": "example-ecs-cluster",
                             "NetworkConfiguration": {
                                 "AwsvpcConfiguration": {

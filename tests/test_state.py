@@ -116,6 +116,7 @@ def test_map():
     )
 
     state_dict = map_state.to_dict()
+
     assert state_dict["Type"] == "Map"
     assert state_dict["InputPath"] == "$.input"
     assert state_dict["OutputPath"] == "$.output"
@@ -154,6 +155,7 @@ def test_task():
         resource="arn:aws:states:::lambda:invoke",
         parameters={"FunctionName": "my-function"},
         result_path="$.result",
+        result_selector={"foo": "$.bar", "baz.$": "$.qux"},
     )
 
     state_dict = task_state.to_dict()
@@ -163,6 +165,8 @@ def test_task():
     assert state_dict["Resource"] == "arn:aws:states:::lambda:invoke"
     assert state_dict["Parameters"]["FunctionName"] == "my-function"
     assert state_dict["ResultPath"] == "$.result"
+    assert state_dict["ResultSelector"]["foo.$"] == "$.bar"
+    assert state_dict["ResultSelector"]["baz.$"] == "$.qux"
 
 
 def test_task_with_error_control():
